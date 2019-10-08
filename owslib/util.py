@@ -15,12 +15,11 @@ from datetime import datetime, timedelta
 import pytz
 from owslib.etree import etree, ParseError
 from owslib.namespaces import Namespaces
-from urllib.parse import urlsplit, urlencode, urlparse, parse_qs, urlunparse
+from urllib.parse import urlsplit, urlencode, urlparse, parse_qs, urlunparse, parse_qsl
 import copy
 
 from io import StringIO, BytesIO
 
-import cgi
 import re
 from copy import deepcopy
 import warnings
@@ -548,7 +547,7 @@ def getNamespace(element):
         return ""
 
 
-def build_get_url(base_url, params, overwrite=False):
+def build_get_url(base_url, params, overwrite=False, doseq=False):
     ''' Utility function to build a full HTTP GET URL from the service base URL and a dictionary of HTTP parameters.
 
     TODO: handle parameters case-insensitive?
@@ -558,7 +557,7 @@ def build_get_url(base_url, params, overwrite=False):
 
     qs_base = []
     if base_url.find('?') != -1:
-        qs_base = cgi.parse_qsl(base_url.split('?')[1])
+        qs_base = parse_qsl(base_url.split('?')[1])
 
     qs_params = []
     for key, value in list(params.items()):
@@ -580,7 +579,7 @@ def build_get_url(base_url, params, overwrite=False):
         if key not in pars:
             qs.append((key, value))
 
-    urlqs = urlencode(tuple(qs))
+    urlqs = urlencode(tuple(qs), doseq=doseq)
     return base_url.split('?')[0] + '?' + urlqs
 
 

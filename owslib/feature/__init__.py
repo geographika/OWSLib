@@ -9,7 +9,7 @@ from owslib.crs import Crs
 
 from urllib.parse import urlencode
 import logging
-from owslib.util import log, Authentication
+from owslib.util import log, Authentication, build_get_url
 from owslib.feature.schema import get_schema
 
 
@@ -163,7 +163,6 @@ class WebFeatureService_(object):
                 if m.get("type").lower() == method.lower()
             )
         )
-        base_url = base_url if base_url.endswith("?") else base_url + "?"
 
         request = {"service": "WFS", "version": self.version, "request": "GetFeature"}
 
@@ -202,9 +201,7 @@ class WebFeatureService_(object):
         if outputFormat is not None:
             request["outputFormat"] = outputFormat
 
-        data = urlencode(request, doseq=True)
-
-        return base_url + data
+        return build_get_url(base_url, request)
 
     def get_schema(self, typename):
         """
