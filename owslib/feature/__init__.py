@@ -7,7 +7,6 @@
 
 from owslib.crs import Crs
 
-from urllib.parse import urlencode
 import logging
 from owslib.util import log, Authentication, build_get_url
 from owslib.feature.schema import get_schema
