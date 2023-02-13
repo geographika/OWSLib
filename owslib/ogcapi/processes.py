@@ -22,15 +22,21 @@ class Processes(Collections):
         __doc__ = Collections.__doc__  # noqa
         super().__init__(url, json_, timeout, headers, auth)
 
-    def processes(self) -> dict:
+    def processes(self) -> list:
         """
         implements /processes
 
-        @returns: `dict` of available processes
+        @returns: `list` of available processes
         """
 
         path = 'processes'
-        return self._request(path=path)
+        process_ids = []
+
+        processes_ = self._request(path=path)
+        for p_ in processes_['processes']:
+            process_ids.append(p_['id'])
+
+        return process_ids
 
     def process(self, process_id: str) -> dict:
         """
