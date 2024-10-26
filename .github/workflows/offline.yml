@@ -1,0 +1,28 @@
+name: test offline ⚙️
+
+on: [ push, pull_request ]
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-python@v5
+      name: Setup Python ${{ matrix.python-version }}
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install requirements 📦
+      run: |
+        pip3 install -e .
+        pip3 install -r requirements.txt
+        pip3 install -r requirements-dev.txt
+  - name: Disable network in namespace
+    run: |
+      sudo ip netns add testns
+      sudo ip link set lo up netns testns
+      sudo ip netns exec testns python3 -m pytest -m "not online"
+    - name: run tests in offline mode ⚙️
+      run: python3 -m pytest
