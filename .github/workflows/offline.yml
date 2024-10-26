@@ -19,12 +19,19 @@ jobs:
         pip3 install -e .
         pip3 install -r requirements.txt
         pip3 install -r requirements-dev.txt
-    - name: run tests in offline mode ⚙️
+    - name: Set up network namespace and disable network
       run: |
+        # Create the network namespace
         sudo ip netns add testns
+        
         # Bring up the loopback interface in the namespace
         sudo ip netns exec testns ip link set lo up
+ 
+    - name: Run tests in isolated network namespace
+      run: |
+        # Run the tests with the "not online" marker inside the network-disabled namespace
         sudo ip netns exec testns python3 -m pytest -m "not online"
+ 
     - name: Clean up network namespace
       if: always()
       run: |
