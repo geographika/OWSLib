@@ -7,6 +7,7 @@
 # Contact email: tomkralidis@gmail.com
 # =============================================================================
 
+import logging
 import os
 import sys
 from collections import OrderedDict
@@ -30,6 +31,7 @@ import codecs
 Utility functions and classes
 """
 
+LOGGER = logging.getLogger(__name__)
 
 class ServiceException(Exception):
     # TODO: this should go in ows common module when refactored.
@@ -206,6 +208,9 @@ def openURL(url_base, data=None, method='Get', cookies=None, username=None, pass
 
     req = requests.request(method.upper(), url_base, headers=headers, **rkwargs)
 
+    LOGGER.debug(req.url)
+    LOGGER.debug(req.text)
+
     if req.status_code in [400, 401, 403]:
         raise ServiceException(req.text)
 
@@ -346,7 +351,7 @@ def getXMLTree(rsp: ResponseWrapper) -> etree:
     content_type = rsp.info().get('Content-Type', 'text/xml')
     url = rsp.geturl()
 
-    xml_types = ['text/xml', 'application/xml', 'application/vnd.ogc.wms_xml']
+    xml_types = ['text/xml', 'application/xml', 'application/vnd.ogc.wms_xml', 'application/octet-stream']
     if not any(xt in content_type.lower() for xt in xml_types):
         html_body = et.find('BODY')  # note this is case-sensitive
         if html_body is not None and len(html_body.text) > 0:
@@ -456,9 +461,17 @@ def http_post(url=None, request=None, lang='en-US', timeout=10, username=None, p
     rkwargs['cert'] = auth.cert
 
     if not isinstance(request, dict):
-        return requests.post(url, request, headers=headers_, **rkwargs)
+        resp = requests.post(url, request, headers=headers_, **rkwargs)
     else:
-        return requests.post(url, json=request, headers=headers_, **rkwargs)
+        resp = requests.post(url, json=request, headers=headers_, **rkwargs)
+
+    LOGGER.debug(request)
+    LOGGER.debug(url)
+    LOGGER.debug(rkwargs)
+
+    LOGGER.debug(resp.text)
+
+    return resp
 
 
 def http_prepare(*args, **kwargs):
