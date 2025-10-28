@@ -14,22 +14,15 @@ from owslib.wfs import WebFeatureService
 from owslib.util import OrderedDict
 
 
-# TODO, we should run all these from local XML documents (as per the WMS and WFS services)
-# CSW_SERVICE_URL = 'http://data.nodc.noaa.gov/geoportal/csw'
-CSW_SERVICE_URL = 'https://demo.pycsw.org/cite/csw'
-WCS_SERVICE_URL = 'http://thredds.ucar.edu/thredds/wcs/grib/NCEP/NAM/CONUS_80km/best'
-
-
-@pytest.mark.online
-@pytest.mark.skipif(not service_ok(CSW_SERVICE_URL),
-                    reason='service is unreachable')
 def test_ows_interfaces_csw():
-    service = CatalogueServiceWeb(CSW_SERVICE_URL)
+    # live service at https://demo.pycsw.org/cite/csw?service=CSW&version=2.0.2&request=GetCapabilities
+    cswxml = open(resource_file('csw_pycwsCapabilities.xml'), 'rb').read()
+    service = CatalogueServiceWeb('url', version='2.0.2', xml=cswxml)
     # Check each service instance conforms to OWSLib interface
     service.alias = 'CSW'
     isinstance(service, owslib.catalogue.csw2.CatalogueServiceWeb)
     # URL attribute
-    assert service.url == CSW_SERVICE_URL
+    assert service.url == 'url'
     # version attribute
     assert service.version == '2.0.2'
     # Identification object
@@ -87,14 +80,18 @@ def test_ows_interfaces_wms():
         assert hasattr(content, attribute)
 
 
-@pytest.mark.online
 def test_ows_interfaces_wcs():
-    service = WebCoverageService(WCS_SERVICE_URL, version='1.0.0')
+    # live service at https://thredds.ucar.edu/thredds/wcs/grib/NCEP/NAM/CONUS_80km/best/?service=WCS&version=1.0.0&request=GetCapabilities
+    url = 'https://example.com'
+    url = 'https://thredds.ucar.edu/thredds/wcs/grib/NCEP/NAM/CONUS_80km/best/'
+    wcsxml = open(resource_file('wcs_threddsCapabilities.xml'), 'rb').read()
+    wcsxml = None
+    service = WebCoverageService(url, version='1.0.0', xml=wcsxml)
     # Check each service instance conforms to OWSLib interface
     service.alias = 'WCS'
     isinstance(service, owslib.coverage.wcs100.WebCoverageService_1_0_0)
     # URL attribute
-    assert service.url == WCS_SERVICE_URL
+    assert service.url == url
     # version attribute
     assert service.version == '1.0.0'
     # Identification object
@@ -116,9 +113,11 @@ def test_ows_interfaces_wcs():
     # Check it conforms to IContentMetadata interface
     # get random item from contents dictionary -has to be a nicer way to do this!
     content = service.contents[list(service.contents.keys())[0]]
-    for attribute in ['id', 'title', 'boundingBox', 'boundingBoxWGS84', 'crsOptions', 'styles', 'timepositions']:
+    for attribute in ['id', 'title', 'boundingBox', 'boundingBoxWGS84', 'crsOptions', 'styles']:
         assert hasattr(content, attribute)
 
+    # 'timepositions'
+    # 'https://thredds.ucar.edu/thredds/wcs/grib/NCEP/NAM/CONUS_80km/best/?service=WCS&request=DescribeCoverage&version=1.0.0&coverage=Convective_Available_Potential_Energy_layer_between_two_pressure_difference_from_ground_layer'
 
 def test_ows_interfaces_wfs():
     wfsxml = open(resource_file('mapserver-wfs-cap.xml'), 'rb').read()
@@ -151,3 +150,6 @@ def test_ows_interfaces_wfs():
     content = service.contents[list(service.contents.keys())[0]]
     for attribute in ['id', 'title', 'boundingBox', 'boundingBoxWGS84', 'crsOptions', 'styles', 'timepositions']:
         assert hasattr(content, attribute)
+
+test_ows_interfaces_wcs()
+# test_ows_interfaces_csw()

@@ -45,7 +45,7 @@ schema_location = '%s %s' % (namespaces['csw'], schema)
 class CatalogueServiceWeb(object):
     """ csw request class """
     def __init__(self, url, lang='en-US', version='2.0.2', timeout=10, skip_caps=False,
-                 username=None, password=None, auth=None, headers=None):
+                 username=None, password=None, auth=None, headers=None, xml=None):
         """
 
         Construct and process a GetCapabilities request
@@ -62,6 +62,7 @@ class CatalogueServiceWeb(object):
         - password: password for HTTP basic authentication
         - auth: instance of owslib.util.Authentication
         - headers: HTTP headers to send with requests
+        - xml: GetCapabilities as an XML string
 
         """
         if auth:
@@ -86,7 +87,10 @@ class CatalogueServiceWeb(object):
 
             self.request = urlencode(data)
 
-            self._invoke()
+            if not xml:
+                self._invoke()
+            else:
+                self._exml = etree.parse(BytesIO(xml))
 
             if self.exceptionreport is None:
                 self.updateSequence = self._exml.getroot().attrib.get('updateSequence')
